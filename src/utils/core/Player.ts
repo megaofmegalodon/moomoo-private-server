@@ -262,6 +262,7 @@ export default class Player {
             doerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "kills", doer.kills, true);
         }
 
+        this.sentTo.clear();
         SessionManager.get(this.socketId)!.send(PacketMap.SERVER_TO_CLIENT.KILL_PLAYER);
     }
 

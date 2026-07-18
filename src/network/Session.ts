@@ -3,7 +3,7 @@ import Player from "@utils/Player";
 import { WebSocket } from "ws";
 
 export default class Session {
-    SocketManager: SocketManager;
+    private SocketManager: SocketManager;
     player: Player | undefined;
 
     constructor(
@@ -11,6 +11,10 @@ export default class Session {
         private socket: WebSocket
     ) {
         this.SocketManager = new SocketManager(this.id, socket);
+    }
+
+    get send() {
+        return this.SocketManager.send;
     }
 
     terminate() {

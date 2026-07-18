@@ -3,7 +3,7 @@ import { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import randInt from "@utils/randInt";
 import { STORE_ACCESSORY_ID, STORE_HAT_ID } from "@utils/store";
 
-type PlayerInitType = [
+export type PlayerInitType = [
     id: string, sid: number,
     name: string,
     x: number, y: number, dir: number,
@@ -112,6 +112,10 @@ export default class Player {
         ];
     }
 
+    get isAlive() {
+        return this.health > 0;
+    }
+
     spawn(name: string) {
         this.position.x = this.lastDeath.x + randInt(-500, 500);
         this.position.y = this.lastDeath.y + randInt(-500, 500);
@@ -131,4 +135,6 @@ export default class Player {
 
         this.health = this.maxHealth;
     }
+
+    update(dt: number = Configuration.SERVER_UPDATE_SPEED) { }
 }

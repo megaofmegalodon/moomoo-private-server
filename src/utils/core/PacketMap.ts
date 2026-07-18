@@ -1,3 +1,5 @@
+import { PlayerInitType } from "@utils/Player";
+
 const PacketMap = {
     CLIENT_TO_SERVER: {
         JOIN_GAME: "M",
@@ -85,7 +87,7 @@ export interface MOOMOO_SERVER_TO_CLIENT_MAP {
     "A": [data: { teams: any[] }];
     "C": [yourSID: number];
     "D": [
-        data: any,
+        data: PlayerInitType,
         isYou: boolean
     ];
     "I": [data: number[]];

@@ -16,6 +16,10 @@ export default class SessionManager {
         return session;
     }
 
+    static get(id: string) {
+        return this.sessionIdMap.get(id);
+    }
+
     static terminate(id: string) {
         const session = this.sessionIdMap.get(id);
         if (!session) return;

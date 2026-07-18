@@ -1,3 +1,5 @@
+import SessionManager from "@network/SessionManager";
+import PacketMap from "@utils/PacketMap";
 import Player from "@utils/Player";
 
 export default class PlayerManager {
@@ -52,6 +54,35 @@ export default class PlayerManager {
                 this.sidMap.delete(player.sid);
                 break;
             }
+        }
+    }
+
+    static postTick() { }
+
+    static update() {
+        const players = this.players;
+
+        for (let i = 0, len = players.length; i < len; i++) {
+            const player = players[i];
+
+            if (!player) continue;
+            if (player.isAlive) player.update();
+
+            const session = SessionManager.get(player.socketId)!;
+            const playerData: any[] = [];
+
+            for (let j = 0; j < len; j++) {
+                const other = players[j];
+
+                if (other.isAlive && !player.sentTo.has(other.socketId)) {
+                    player.sentTo.add(other.socketId);
+                    session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
+                }
+
+                playerData.push(...other.getUpdateData());
+            }
+
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYERS, playerData);
         }
     }
 }

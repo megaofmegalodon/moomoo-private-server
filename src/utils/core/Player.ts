@@ -1,7 +1,8 @@
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
-import { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
+import getDist from "@utils/getDist";
+import items, { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import randInt from "@utils/randInt";
 import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID, STORE_HAT_MAP } from "@utils/store";
@@ -71,6 +72,8 @@ export default class Player {
     private placementCount = 0;
     private timerCount = 0;
     private hitTime = 0;
+    private lockMove = false;
+    private speed = Configuration.PLAYER_SPEED;
 
     constructor(
         public socketId: string,
@@ -265,8 +268,70 @@ export default class Player {
         }
     }
 
+    private handleMovementInputs(dt: number) {
+        if (this.lockMove) {
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+        } else {
+            const wpn = items.weapons[this.weaponIndex];
+            const skin = hats.find(e => e.id == this.skinIndex);
+            const tail = accessories.find(e => e.id == this.tailIndex);
+
+            const spdMult = (this.buildIndex >= 0 ? .5 : 1) *
+                (wpn?.spdMult || 1) *
+                (skin?.spdMult ?? 1) *
+                (tail?.spdMult ?? 1);
+
+            if (typeof this.moveDir === "number") {
+                let xVel = Math.cos(this.moveDir);
+                let yVel = Math.sin(this.moveDir);
+
+                const length = Math.sqrt(xVel * xVel + yVel * yVel);
+
+                xVel /= length;
+                yVel /= length;
+
+                if (xVel) this.velocity.x += xVel * this.speed * spdMult * dt;
+                if (yVel) this.velocity.y += yVel * this.speed * spdMult * dt;
+
+            }
+        }
+    }
+
+    private updatePosition(dt: number) {
+        const tmpSpeed = getDist({ x: 0, y: 0 }, { x: this.velocity.x * dt, y: this.velocity.y * dt });
+        const depth = Math.min(4, Math.max(1, Math.round(tmpSpeed / 40)));
+        const tMlt = 1 / depth;
+
+        this.lockMove = false;
+        for (let i = 0; i < depth; i++) {
+            if (this.velocity.x) this.position.x += (this.velocity.x * dt) * tMlt;
+            if (this.velocity.y) this.position.y += (this.velocity.y * dt) * tMlt;
+        }
+
+        this.handleDeceleration(dt);
+
+        this.position.x = Math.max(this.scale, Math.min(this.position.x, Configuration.MAP_SIZE - this.scale));
+        this.position.y = Math.max(this.scale, Math.min(this.position.y, Configuration.MAP_SIZE - this.scale));
+    }
+
+    private handleDeceleration(dt: number) {
+        if (this.velocity.x) {
+            this.velocity.x *= Math.pow(Configuration.PLAYER_DECELERATION, dt);
+            if (Math.abs(this.velocity.x) <= 0.01) this.velocity.x = 0;
+        }
+
+        if (this.velocity.y) {
+            this.velocity.y *= Math.pow(Configuration.PLAYER_DECELERATION, dt);
+            if (Math.abs(this.velocity.y)) this.velocity.y = 0;
+        }
+    }
+
     update(dt: number = Configuration.SERVER_UPDATE_SPEED) {
         this.preTick(dt);
         if (!this.isAlive) return;
+
+        this.handleMovementInputs(dt);
+        this.updatePosition(dt);
     }
 }

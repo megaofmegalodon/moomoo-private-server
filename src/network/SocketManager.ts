@@ -1,4 +1,5 @@
 import SessionManager from "@network/SessionManager";
+import getLeaderboardData from "@utils/getLeaderboardData";
 import PacketMap, { MOOMOO_CLIENT_TO_SERVER_MAP, MOOMOO_SERVER_TO_CLIENT_MAP } from "@utils/PacketMap";
 import { decode, encode } from "msgpack-lite";
 import { WebSocket } from "ws";
@@ -69,6 +70,7 @@ export default class SocketManager {
             const ourPlayer = PlayerManager.create(this.sessionId, data.name);
             SessionManager.get(this.sessionId)!.player = ourPlayer;
             this.send(PacketMap.SERVER_TO_CLIENT.SET_UP_GAME, ourPlayer.sid);
+            this.send(PacketMap.SERVER_TO_CLIENT.UPDATE_LEADERBOARD, getLeaderboardData());
         });
 
         this.on(PacketMap.CLIENT_TO_SERVER.STORE, (buy, id, index) => {

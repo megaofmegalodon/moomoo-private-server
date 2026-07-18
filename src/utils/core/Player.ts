@@ -1,8 +1,10 @@
+import ObjectManager from "@core/ObjectManager";
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
 import getDir from "@utils/getDir";
 import getDist from "@utils/getDist";
+import getDistSq from "@utils/getDistSq";
 import items, { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import randInt from "@utils/randInt";
@@ -317,6 +319,50 @@ export default class Player {
         if (other.zIndex > this.zIndex) this.zIndex = other.zIndex;
     }
 
+    private handleObjectCollisions(dt: number) {
+        const gameObjects = ObjectManager.getObjects(this.position.x, this.position.y);
+
+        for (let i = 0, len = gameObjects.length; i < len; i++) {
+            const gameObject = gameObjects[i];
+            if (!gameObject) continue;
+
+            const tmpScale = this.scale + gameObject.getScale();
+            const distSq = getDistSq(this.position, gameObject);
+            const tmpScaleSq = tmpScale * tmpScale;
+
+            if (distSq <= tmpScaleSq && gameObject.active) {
+                const isEnemy = this.sid === 0 ? gameObject.ownerSID !== 0 : gameObject.ownerSID === 0;
+
+                if (!gameObject.ignoreCollision) {
+                    const tmpDir = getDir(this.position, gameObject);
+
+                    this.position.x = gameObject.x + (tmpScale * Math.cos(tmpDir));
+                    this.position.y = gameObject.y + (tmpScale * Math.sin(tmpDir));
+                    this.velocity.x *= 0.75;
+                    this.velocity.y *= 0.75;
+
+                    if (gameObject.dmg && isEnemy) {
+                        this.changeHealth(-gameObject.dmg, PlayerManager.get(gameObject.ownerSID!)!);
+                        this.velocity.x += 1.5 * Math.cos(tmpDir);
+                        this.velocity.y += 1.5 * Math.sin(tmpDir);
+                    }
+                } else if (gameObject.trap && isEnemy) {
+                    this.lockMove = true;
+                    gameObject.hideFromEnemy = false;
+                } else if (gameObject.boostSpeed) {
+                    const mag = dt * gameObject.boostSpeed;
+                    this.velocity.x += mag * Math.cos(gameObject.dir);
+                    this.velocity.y += mag * Math.sin(gameObject.dir);
+                } else if (gameObject.teleport) {
+                    this.velocity.x = randInt(0, Configuration.MAP_SIZE);
+                    this.velocity.y = randInt(0, Configuration.MAP_SIZE);
+                }
+
+                if (gameObject.zIndex > this.zIndex) this.zIndex = gameObject.zIndex;
+            }
+        }
+    }
+
     private updatePosition(dt: number) {
         const players = PlayerManager.players;
         const tmpSpeed = getDist({ x: 0, y: 0 }, { x: this.velocity.x * dt, y: this.velocity.y * dt });
@@ -327,6 +373,7 @@ export default class Player {
         for (let i = 0; i < depth; i++) {
             if (this.velocity.x) this.position.x += (this.velocity.x * dt) * tMlt;
             if (this.velocity.y) this.position.y += (this.velocity.y * dt) * tMlt;
+            this.handleObjectCollisions(dt);
         }
 
         const tmpIndx = players.indexOf(this);

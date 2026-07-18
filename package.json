@@ -16,7 +16,8 @@
     "main": "index.js",
     "scripts": {
         "watch": "node packaging/watch.mjs",
-        "build": "node packaging/build.mjs"
+        "build": "node packaging/build.mjs",
+        "start": "npm run build && node dist/server.js"
     },
     "dependencies": {
         "dotenv": "^17.4.2",

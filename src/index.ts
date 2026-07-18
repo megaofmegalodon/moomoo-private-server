@@ -1,4 +1,8 @@
+import ObjectManager from "@core/ObjectManager";
+import PlayerManager from "@core/PlayerManager";
+import ProjectileManager from "@core/ProjectileManager";
 import SessionManager from "@network/SessionManager";
+import Configuration from "@utils/Configuration";
 import { config } from "dotenv";
 import express from "express";
 import { WebSocketServer } from "ws";
@@ -9,6 +13,14 @@ const PORT = process.env.PORT || 1234;
 const app = express();
 const server = app.listen(PORT, () => console.log(`Server listening to port ${PORT}`));
 const wss = new WebSocketServer({ noServer: true });
+
+setInterval(() => {
+    PlayerManager.update();
+    ObjectManager.update();
+    ProjectileManager.update();
+
+    PlayerManager.postTick();
+}, Configuration.SERVER_UPDATE_SPEED);
 
 wss.on("connection", (ws, req) => {
     ws.binaryType = "arraybuffer";

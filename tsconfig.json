@@ -6,6 +6,9 @@
             "@network/*": [
                 "./src/network/*"
             ],
+            "@core/*": [
+                "./src/core/*"
+            ],
             "@utils/*": [
                 "./src/utils/constants/*",
                 "./src/utils/core/*",

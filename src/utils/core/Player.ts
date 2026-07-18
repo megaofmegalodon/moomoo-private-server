@@ -97,7 +97,18 @@ export default class Player {
     }
 
     buildItem(item: ListItem) {
-        if (this.placementCount >= 2 && Configuration.ANTI_CHEAT) return;
+        if (this.placementCount >= 2 && Configuration.ANTI_CHEAT) {
+            if (this.shameTimer <= 0) {
+                this.shameCount += this.placementCount;
+                this.placementCount++;
+
+                if (this.shameCount >= 8) {
+                    this.shameCount = 0;
+                    this.shameTimer = Configuration.SHAME_DURATION;
+                }
+            }
+            return;
+        }
 
         const tmpScale = this.scale + item.scale + (item.placeOffset || 0);
         const tmpX = this.position.x + (tmpScale * Math.cos(this.dir));
@@ -261,6 +272,9 @@ export default class Player {
             const doerSession = SessionManager.get(doer.socketId)!;
             doerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "kills", doer.kills, true);
         }
+
+        this.lastDeath.x = this.position.x;
+        this.lastDeath.y = this.position.y;
 
         this.sentTo.clear();
         SessionManager.get(this.socketId)!.send(PacketMap.SERVER_TO_CLIENT.KILL_PLAYER);

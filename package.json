@@ -19,8 +19,10 @@
         "build": "node packaging/build.mjs"
     },
     "dependencies": {
+        "dotenv": "^17.4.2",
         "esbuild": "^0.28.1",
         "express": "^5.2.1",
+        "msgpack-lite": "^0.1.26",
         "ws": "^8.21.1"
     },
     "allowScripts": {
@@ -28,6 +30,7 @@
     },
     "devDependencies": {
         "@types/express": "^5.0.6",
+        "@types/msgpack-lite": "^0.1.12",
         "@types/ws": "^8.18.1"
     }
 }

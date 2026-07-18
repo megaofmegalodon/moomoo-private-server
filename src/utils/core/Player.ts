@@ -267,7 +267,8 @@ export default class Player {
     }
 
     changeHealth(amt: number, doer: Player) {
-        if (amt > 0 && this.health >= this.maxHealth) return false
+        if (amt > 0 && this.health >= this.maxHealth) return;
+        if (!this.isAlive) return;
 
         const skin = hats.find(e => e.id == this.skinIndex);
         const players = PlayerManager.players;
@@ -300,8 +301,6 @@ export default class Player {
                 Math.round(-amt), 1
             );
         }
-
-        return true;
     }
 
     earnXP(amount: number) {

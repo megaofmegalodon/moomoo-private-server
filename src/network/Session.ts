@@ -1,19 +1,16 @@
-import SocketManager from "@network/SessionManager";
-import SocketListener from "@network/SocketListener";
+import SocketManager from "@network/SocketManager";
+import Player from "@utils/Player";
 import { WebSocket } from "ws";
 
 export default class Session {
-    SocketListener = new SocketListener();
+    SocketManager: SocketManager;
+    player: Player | undefined;
 
     constructor(
         private id: string,
         private socket: WebSocket
     ) {
-        this.SocketListener.init(this.socket);
-
-        socket.on("message", (data, isBinary) => {
-            if (!isBinary) return SocketManager.terminate(this.id);
-        });
+        this.SocketManager = new SocketManager(this.id, socket);
     }
 
     terminate() {

@@ -7,7 +7,9 @@ const Configuration = {
     AUTO_REGEN_COOLDOWN: 1000,
     PLAYER_DECELERATION: .993,
     MAX_SCREEN_WIDTH: 1920,
-    MAX_SCREEN_HEIGHT: 1080
+    MAX_SCREEN_HEIGHT: 1080,
+    GATHER_ANGLE: Math.PI / 2.6,
+    SHIELD_ANGLE: Math.PI / 3
 } as const;
 
 export default Configuration;

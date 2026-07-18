@@ -2,6 +2,7 @@ import ObjectManager from "@core/ObjectManager";
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
+import getAngleDist from "@utils/getAngleDist";
 import getDir from "@utils/getDir";
 import getDist from "@utils/getDist";
 import getDistSq from "@utils/getDistSq";
@@ -78,6 +79,13 @@ export default class Player {
     private hitTime = 0;
     private lockMove = false;
     private speed = Configuration.PLAYER_SPEED;
+
+    XP = 0;
+    maxXP = 300;
+    age = 1;
+
+    upgradePoints = 0;
+    upgrAge = 2;
 
     constructor(
         public socketId: string,
@@ -162,6 +170,13 @@ export default class Player {
         this.kills = 0;
         this.autoGather = false;
 
+        this.age = 1;
+        this.XP = 0;
+        this.maxXP = 300;
+
+        this.upgradePoints = 0;
+        this.upgrAge = 2;
+
         this.position.x = this.lastDeath.x + randInt(-500, 500);
         this.position.y = this.lastDeath.y + randInt(-500, 500);
 
@@ -244,11 +259,135 @@ export default class Player {
         return true;
     }
 
+    earnXP(amount: number) {
+        if (this.age >= 100) return;
+        this.XP += amount;
+
+        const session = SessionManager.get(this.socketId)!;
+
+        if (this.XP >= this.maxXP) {
+            if (this.age < 100) {
+                this.age++;
+                this.XP = 0;
+                this.maxXP *= 1.2;
+            } else {
+                this.XP = this.maxXP;
+            }
+
+            this.upgradePoints++;
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, this.upgradePoints, this.upgrAge);
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, this.maxXP, this.age);
+        } else {
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, undefined, undefined);
+        }
+    }
+
     canSee(other: Player) {
         if (!other) return false;
         const dx = Math.abs(other.position.x - this.position.x) - other.scale;
         const dy = Math.abs(other.position.y - this.position.y) - other.scale;
         return dx <= (Configuration.MAX_SCREEN_WIDTH / 2) * 1.3 && dy <= (Configuration.MAX_SCREEN_HEIGHT / 2) * 1.3;
+    }
+
+    private gather() {
+        const wpn = items.weapons[this.weaponIndex];
+        const variant = this.fetchVariant();
+        const variantMlt = variant.val;
+
+        const skin = hats.find(e => e.id === this.skinIndex);
+        const tail = accessories.find(e => e.id === this.tailIndex);
+        let hasHitSomething = false;
+
+        const gameObjects = ObjectManager.getObjects(this.position.x, this.position.y);
+        const gameObjectDamage = wpn.dmg * variantMlt * (wpn.sDmg || 1) * (skin?.bDmg || 1);
+        const wiggleGameObects = [];
+
+        for (let i = 0, len = gameObjects.length; i < len; i++) {
+            const gameObject = gameObjects[i];
+
+            if (gameObject.active) {
+                const dist = getDist(this.position, gameObject) - gameObject.scale;
+                const isWithinRange = dist <= wpn.range;
+
+                const tmpDir = getDir(gameObject, this.position);
+                const isPointingAt = getAngleDist(tmpDir, this.dir) <= Configuration.GATHER_ANGLE;
+
+                if (isWithinRange && isPointingAt) {
+                    hasHitSomething = true;
+
+                    if (gameObject.health) {
+                        gameObject.changeHealth(-gameObjectDamage);
+
+                        if (gameObject.health <= 0) {
+                            ObjectManager.remove(gameObject.sid);
+                            continue;
+                        }
+                    }
+
+                    wiggleGameObects.push([tmpDir, gameObject.sid]);
+                }
+            }
+        }
+
+        const players = PlayerManager.players;
+
+        for (let i = 0, len = players.length; i < len; i++) {
+            const player = players[i];
+            if (!player) continue;
+            const isEnemy = this.sid !== player.sid;
+
+            if (player.isAlive && isEnemy) {
+                const dist = getDist(this.position, player.position) - (this.scale * 1.8);
+                const withinRange = dist <= wpn.range;
+
+                const tmpDir = getDir(player.position, this.position);
+                const pointingAt = getAngleDist(tmpDir, this.dir) <= Configuration.GATHER_ANGLE;
+
+                if (withinRange && pointingAt) {
+                    let damage = wpn.dmg * variantMlt * (skin?.dmgMultO || 1) * (tail?.dmgMultO || 1);
+
+                    const otherWpn = items.weapons[player.weaponIndex];
+                    const otherSkin = hats.find(e => e.id === this.skinIndex);
+                    const otherTail = accessories.find(e => e.id === this.tailIndex);
+
+                    if (otherSkin?.dmgK) {
+                        this.velocity.x -= otherSkin.dmgK * Math.cos(tmpDir);
+                        this.velocity.y -= otherSkin.dmgK * Math.sin(tmpDir);
+                    }
+
+                    if (otherWpn.shield && getAngleDist(tmpDir + Math.PI, player.dir) <= Configuration.SHIELD_ANGLE) {
+                        damage /= variantMlt;
+                        damage *= otherWpn.shield;
+                    }
+
+                    const tmpSpd = .3 + (wpn.knock || 0);
+                    player.velocity.x += tmpSpd * Math.cos(tmpDir);
+                    player.velocity.y += tmpSpd * Math.sin(tmpDir);
+
+                    if (otherSkin?.dmg) this.changeHealth(-damage * otherSkin.dmg, player);
+                    if (otherTail?.dmg) this.changeHealth(-damage * otherTail.dmg, player);
+
+                    if (otherSkin?.healD) {
+                        this.changeHealth(damage * otherSkin.healD, this);
+                    }
+
+                    if (otherTail?.healD) {
+                        this.changeHealth(damage * otherTail.healD, this);
+                    }
+
+                    player.changeHealth(-damage, this);
+                }
+            }
+
+            if (player.canSee(this)) {
+                const playerSession = SessionManager.get(player.socketId)!;
+                playerSession.send(PacketMap.SERVER_TO_CLIENT.GATHER_ANIMATION, this.sid, hasHitSomething, this.weaponIndex);
+
+                for (const data of wiggleGameObects) {
+                    playerSession.send(PacketMap.SERVER_TO_CLIENT.WIGGLE_GAME_OBJECT, data[0], data[1]);
+                }
+            }
+        }
     }
 
     private updateAntiCheatModifiers() {
@@ -340,7 +479,7 @@ export default class Player {
             const tmpScaleSq = tmpScale * tmpScale;
 
             if (distSq <= tmpScaleSq && gameObject.active) {
-                const isEnemy = this.sid === 0 ? gameObject.ownerSID !== 0 : gameObject.ownerSID === 0;
+                const isEnemy = typeof gameObject.ownerSID !== "number" || this.sid !== gameObject.ownerSID;
 
                 if (!gameObject.ignoreCollision) {
                     const tmpDir = getDir(this.position, gameObject);
@@ -409,11 +548,37 @@ export default class Player {
         }
     }
 
+    private handleWeapons(dt: number) {
+        if (this.buildIndex !== -1)
+            return;
+
+        if (this.reloads[this.weaponIndex] > 0) {
+            this.reloads[this.weaponIndex] -= dt;
+            return;
+        }
+
+        if (!this.autoGather) return;
+
+        let done = true;
+        const skin = hats.find(e => e.id == this.skinIndex);
+        const wpn = items.weapons[this.weaponIndex || 0];
+
+        if (wpn.gather != undefined) {
+            this.gather();
+        } else {
+            done = false;
+        }
+
+        if (done) this.reloads[this.weaponIndex] = wpn.speed * (skin?.atkSpd ?? 1);
+    }
+
     update(dt: number = Configuration.SERVER_UPDATE_SPEED) {
         this.preTick(dt);
         if (!this.isAlive) return;
+        if (this.age <= 9) this.earnXP(this.maxXP);
 
         this.handleMovementInputs(dt);
         this.updatePosition(dt);
+        this.handleWeapons(dt);
     }
 }

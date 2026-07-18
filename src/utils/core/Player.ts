@@ -429,21 +429,16 @@ export default class Player {
         if (typeof this.moveDir !== "number") return;
 
         const wpn = items.weapons[this.weaponIndex];
-        const skin = hats.find(e => e.id == this.skinIndex);
-        const tail = accessories.find(e => e.id == this.tailIndex);
+        const skin = hats.find(e => e.id === this.skinIndex);
+        const tail = accessories.find(e => e.id === this.tailIndex);
         const spdMult = (this.buildIndex >= 0 ? .5 : 1) * (wpn?.spdMult || 1) * (skin?.spdMult ?? 1) * (tail?.spdMult ?? 1);
-
-        let xVel = Math.cos(this.moveDir);
-        let yVel = Math.sin(this.moveDir);
-
         const spdMag = this.speed * spdMult * dt;
-        const length = Math.sqrt(xVel * xVel + yVel * yVel);
 
-        xVel /= length;
-        yVel /= length;
+        const xVel = Math.cos(this.moveDir);
+        const yVel = Math.sin(this.moveDir);
 
-        if (xVel) this.velocity.x += xVel * spdMag;
-        if (yVel) this.velocity.y += yVel * spdMag;
+        this.velocity.x += xVel * spdMag;
+        this.velocity.y += yVel * spdMag;
     }
 
     private checkPlayerCollision(other: Player) {
@@ -487,7 +482,7 @@ export default class Player {
                     this.position.x = gameObject.x + (tmpScale * Math.cos(tmpDir));
                     this.position.y = gameObject.y + (tmpScale * Math.sin(tmpDir));
                     this.velocity.x *= 0.75;
-                    this.velocity.y *= 0.75;
+                    this.velocity.y *= 0.75; console.log("WHAT")
 
                     if (gameObject.dmg && isEnemy) {
                         this.changeHealth(-gameObject.dmg, PlayerManager.get(gameObject.ownerSID!)!);
@@ -502,8 +497,8 @@ export default class Player {
                     this.velocity.x += mag * Math.cos(gameObject.dir);
                     this.velocity.y += mag * Math.sin(gameObject.dir);
                 } else if (gameObject.teleport) {
-                    this.velocity.x = randInt(0, Configuration.MAP_SIZE);
-                    this.velocity.y = randInt(0, Configuration.MAP_SIZE);
+                    this.position.x = randInt(0, Configuration.MAP_SIZE);
+                    this.position.y = randInt(0, Configuration.MAP_SIZE);
                 }
 
                 if (gameObject.zIndex > this.zIndex) this.zIndex = gameObject.zIndex;
@@ -544,7 +539,7 @@ export default class Player {
 
         if (this.velocity.y) {
             this.velocity.y *= Math.pow(Configuration.PLAYER_DECELERATION, dt);
-            if (Math.abs(this.velocity.y)) this.velocity.y = 0;
+            if (Math.abs(this.velocity.y) <= 0.01) this.velocity.y = 0;
         }
     }
 
@@ -575,7 +570,7 @@ export default class Player {
     update(dt: number = Configuration.SERVER_UPDATE_SPEED) {
         this.preTick(dt);
         if (!this.isAlive) return;
-        if (this.age <= 9) this.earnXP(this.maxXP);
+        if (this.age <= 9 && this.sentTo.has(this.socketId)) this.earnXP(this.maxXP);
 
         this.handleMovementInputs(dt);
         this.updatePosition(dt);

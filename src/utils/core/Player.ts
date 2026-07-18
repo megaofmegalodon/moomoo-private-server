@@ -1,6 +1,7 @@
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
+import getDir from "@utils/getDir";
 import getDist from "@utils/getDist";
 import items, { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
@@ -280,12 +281,7 @@ export default class Player {
         const wpn = items.weapons[this.weaponIndex];
         const skin = hats.find(e => e.id == this.skinIndex);
         const tail = accessories.find(e => e.id == this.tailIndex);
-
-        const spdMult = (this.buildIndex >= 0 ? .5 : 1) *
-            (wpn?.spdMult || 1) *
-            (skin?.spdMult ?? 1) *
-            (tail?.spdMult ?? 1);
-
+        const spdMult = (this.buildIndex >= 0 ? .5 : 1) * (wpn?.spdMult || 1) * (skin?.spdMult ?? 1) * (tail?.spdMult ?? 1);
 
         let xVel = Math.cos(this.moveDir);
         let yVel = Math.sin(this.moveDir);
@@ -300,7 +296,29 @@ export default class Player {
         if (yVel) this.velocity.y += yVel * spdMag;
     }
 
+    private checkPlayerCollision(other: Player) {
+        const dx = this.position.x - other.position.x;
+        const dy = this.position.y - other.position.y;
+        const tmpLen = this.scale + other.scale;
+
+        if (Math.abs(dx) > tmpLen && Math.abs(dy) > tmpLen) return;
+
+        let tmpInt = getDist(this.position, other.position) - tmpLen;
+        if (tmpInt > 0) return;
+
+        const tmpDir = getDir(this.position, other.position);
+        tmpInt = (tmpInt * -1) / 2;
+
+        this.position.x += (tmpInt * Math.cos(tmpDir));
+        this.position.y += (tmpInt * Math.sin(tmpDir));
+        other.position.x -= (tmpInt * Math.cos(tmpDir));
+        other.position.y -= (tmpInt * Math.sin(tmpDir));
+
+        if (other.zIndex > this.zIndex) this.zIndex = other.zIndex;
+    }
+
     private updatePosition(dt: number) {
+        const players = PlayerManager.players;
         const tmpSpeed = getDist({ x: 0, y: 0 }, { x: this.velocity.x * dt, y: this.velocity.y * dt });
         const depth = Math.min(4, Math.max(1, Math.round(tmpSpeed / 40)));
         const tMlt = 1 / depth;
@@ -309,6 +327,12 @@ export default class Player {
         for (let i = 0; i < depth; i++) {
             if (this.velocity.x) this.position.x += (this.velocity.x * dt) * tMlt;
             if (this.velocity.y) this.position.y += (this.velocity.y * dt) * tMlt;
+        }
+
+        const tmpIndx = players.indexOf(this);
+        for (let i = tmpIndx + 1; i < players.length; i++) {
+            const other = players[i];
+            if (other.isAlive) this.checkPlayerCollision(players[i]);
         }
 
         this.handleDeceleration(dt);

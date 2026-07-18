@@ -72,11 +72,32 @@ export default class SocketManager {
         });
 
         this.on(PacketMap.CLIENT_TO_SERVER.STORE, (buy, id, index) => {
-            if (!buy) return;
+            if (buy) return;
 
             const player = SessionManager.get(this.sessionId)!.player;
             if (!player) return;
             player.changeGear(id, index);
+        });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.SEND_CHAT, (msg) => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            const players = PlayerManager.players;
+            if (!player) return;
+
+            for (let i = 0; i < players.length; i++) {
+                const other = players[i];
+                if (!other) continue;
+
+                if (other.canSee(player) && player.sentTo.has(other.socketId)) {
+                    SessionManager.get(other.socketId)!.send(PacketMap.SERVER_TO_CLIENT.RECEIVE_CHAT, player.sid, msg);
+                }
+            }
+        });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.SEND_AIM, (angle) => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+            player.dir = angle;
         });
 
         this.on(PacketMap.CLIENT_TO_SERVER.MOVE, (angle) => {

@@ -67,7 +67,22 @@ export default class SocketManager {
                 return PlayerManager.get(this.sessionId)!.spawn(data.name);
 
             const ourPlayer = PlayerManager.create(this.sessionId, data.name);
+            SessionManager.get(this.sessionId)!.player = ourPlayer;
             this.send(PacketMap.SERVER_TO_CLIENT.SET_UP_GAME, ourPlayer.sid);
+        });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.STORE, (buy, id, index) => {
+            if (!buy) return;
+
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+            player.changeGear(id, index);
+        });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.MOVE, (angle) => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+            player.moveDir = angle;
         });
     }
 }

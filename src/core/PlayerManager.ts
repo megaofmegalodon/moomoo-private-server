@@ -65,7 +65,7 @@ export default class PlayerManager {
             const player = players[i];
 
             if (!player) continue;
-            if (player.isAlive) player.update();
+            player.update();
 
             const session = SessionManager.get(player.socketId)!;
             const playerData: any[] = [];

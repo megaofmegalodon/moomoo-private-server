@@ -261,7 +261,7 @@ export default class Player {
                 this.changeHealth(regenAmount, this);
             }
 
-            this.timerCount = 1e3;
+            this.timerCount = Configuration.AUTO_REGEN_COOLDOWN;
         }
     }
 

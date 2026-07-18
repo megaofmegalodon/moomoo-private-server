@@ -68,6 +68,7 @@ export default class PlayerManager {
 
             for (let j = 0; j < len; j++) {
                 const other = players[j];
+                if (!player.canSee(other)) continue;
 
                 if (other.isAlive && !player.sentTo.has(other.socketId)) {
                     player.sentTo.add(other.socketId);

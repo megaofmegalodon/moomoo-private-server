@@ -165,7 +165,7 @@ export default class Player {
 
         this.name = name.slice(0, 15) ?? "unknown";
         this.shameCount = 0;
-        this.shameTimer = Configuration.SHAME_DURATION;
+        this.shameTimer = 0;
 
         this.weapons = [WEAPON_ID_MAP.TOOL_HAMMER];
         this.items = [LIST_ID_MAP.APPLE, LIST_ID_MAP.WOOD_WALL, LIST_ID_MAP.SPIKES, LIST_ID_MAP.WINDMILL];
@@ -240,6 +240,13 @@ export default class Player {
         }
 
         return true;
+    }
+
+    canSee(other: Player) {
+        if (!other) return false;
+        const dx = Math.abs(other.position.x - this.position.x) - other.scale;
+        const dy = Math.abs(other.position.y - this.position.y) - other.scale;
+        return dx <= (Configuration.MAX_SCREEN_WIDTH / 2) * 1.3 && dy <= (Configuration.MAX_SCREEN_HEIGHT / 2) * 1.3;
     }
 
     private updateAntiCheatModifiers() {

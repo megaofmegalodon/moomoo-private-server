@@ -5,7 +5,9 @@ const Configuration = {
     SERVER_UPDATE_SPEED: 1e3 / 9, // don't change this if u don't want the game to explode
     ANTI_CHEAT: false, // basically enables a decent anticheat
     AUTO_REGEN_COOLDOWN: 1000,
-    PLAYER_DECELERATION: .993
+    PLAYER_DECELERATION: .993,
+    MAX_SCREEN_WIDTH: 1920,
+    MAX_SCREEN_HEIGHT: 1080
 } as const;
 
 export default Configuration;

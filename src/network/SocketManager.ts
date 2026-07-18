@@ -1,5 +1,6 @@
 import SessionManager from "@network/SessionManager";
 import getLeaderboardData from "@utils/getLeaderboardData";
+import items, { ListId, WeaponId } from "@utils/items";
 import PacketMap, { MOOMOO_CLIENT_TO_SERVER_MAP, MOOMOO_SERVER_TO_CLIENT_MAP } from "@utils/PacketMap";
 import { decode, encode } from "msgpack-lite";
 import { WebSocket } from "ws";
@@ -61,6 +62,74 @@ export default class SocketManager {
     }
 
     hookEvents() {
+        this.on(PacketMap.CLIENT_TO_SERVER.SEND_UPGRADE, (id) => {
+            const session = SessionManager.get(this.sessionId)!;
+            const player = session.player;
+
+            if (!player) return;
+            if (player.upgradePoints <= 0) return;
+
+            if (id < 16) {
+                if (id < 9) {
+                    player.weapons[0] = id as WeaponId;
+
+                    if (player.weaponIndex < 9) {
+                        player.weaponIndex = id as WeaponId;
+                    }
+                } else {
+                    player.weapons[1] = id as WeaponId;
+
+                    if (player.weaponIndex >= 9) {
+                        player.weaponIndex = id as WeaponId;
+                    }
+                }
+
+                player.upgradePoints--;
+                player.upgrAge++;
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, player.weapons, true);
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, player.upgradePoints, player.upgrAge);
+            } else {
+                const itemId = id - 16;
+                const item = items.list[itemId];
+
+                if (item) {
+                    if (item.group) {
+                        let groupId = 0;
+
+                        if (item.group.name == "food") groupId = 0;
+                        if (item.group.name == "walls") groupId = 1;
+                        if (item.group.name == "spikes") groupId = 2;
+                        if (item.group.name == "mill") groupId = 3;
+                        if (item.group.name == "trap" || item.group.name == "booster") groupId = 4;
+                        if (["turret", "blocker", "teleporter", "watchtower"].includes(item.group.name)) groupId = 5;
+
+                        player.items[groupId] = itemId as ListId;
+                    }
+
+                    player.upgradePoints--;
+                    player.upgrAge++;
+                    session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, player.upgradePoints, player.upgrAge);
+                    session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, player.items, false);
+                }
+            }
+        });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.SELECT_TO_BUILD, (id, isWeapon) => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+
+            if (isWeapon) {
+                player.buildIndex = -1;
+                player.weaponIndex = id as any;
+            } else {
+                if (player.buildIndex === id) {
+                    player.buildIndex = -1;
+                } else {
+                    player.buildIndex = id;
+                }
+            }
+        });
+
         this.on(PacketMap.CLIENT_TO_SERVER.JOIN_GAME, (data) => {
             const hasSpawnedBefore = PlayerManager.has(this.sessionId);
 

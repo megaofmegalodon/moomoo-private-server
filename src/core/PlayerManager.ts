@@ -56,16 +56,12 @@ export default class PlayerManager {
         }
     }
 
-    static postTick() { }
-
-    static update() {
+    static postTick() {
         const players = this.players;
 
         for (let i = 0, len = players.length; i < len; i++) {
             const player = players[i];
-
             if (!player) continue;
-            player.update();
 
             const session = SessionManager.get(player.socketId)!;
             const playerData: any[] = [];
@@ -83,6 +79,16 @@ export default class PlayerManager {
             }
 
             session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYERS, playerData);
+        }
+    }
+
+    static update() {
+        const players = this.players;
+
+        for (let i = 0, len = players.length; i < len; i++) {
+            const player = players[i];
+            if (!player) continue;
+            player.update();
         }
     }
 }

@@ -22,7 +22,7 @@ setInterval(() => {
     PlayerManager.postTick();
 }, Configuration.SERVER_UPDATE_SPEED);
 
-wss.on("connection", (ws, req) => {
+wss.on("connection", (ws) => {
     ws.binaryType = "arraybuffer";
     SessionManager.create(ws);
 });

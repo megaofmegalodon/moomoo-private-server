@@ -2,8 +2,22 @@ import Player from "@utils/Player";
 
 export default class PlayerManager {
     static players: Player[] = [];
+
+    private static currentSID = 0;
     private static idMap = new Map<string, Player>();
     private static sidMap = new Map<number, Player>();
+
+    static create(sessionId: string, name: string) {
+        name = name.slice(0, 15) ?? "unknown";
+        const player = new Player(sessionId, this.currentSID, name);
+
+        this.players.push(player);
+        this.idMap.set(sessionId, player);
+        this.sidMap.set(this.currentSID, player);
+        this.currentSID++;
+
+        return player;
+    }
 
     static has(identifier: string | number) {
         if (typeof identifier === "string") return this.idMap.has(identifier);

@@ -6,7 +6,7 @@ import getAngleDist from "@utils/getAngleDist";
 import getDir from "@utils/getDir";
 import getDist from "@utils/getDist";
 import getDistSq from "@utils/getDistSq";
-import items, { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
+import items, { LIST_ID_MAP, ListId, ListItem, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import randInt from "@utils/randInt";
 import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID, STORE_HAT_MAP } from "@utils/store";
@@ -86,6 +86,7 @@ export default class Player {
 
     upgradePoints = 0;
     upgrAge = 2;
+    mouseState = 0;
 
     constructor(
         public socketId: string,
@@ -95,11 +96,53 @@ export default class Player {
         this.spawn(name);
     }
 
-    buildItem() {
-        //logic wip
-
+    buildItem(item: ListItem) {
         if (this.placementCount >= 2 && Configuration.ANTI_CHEAT) return;
-        this.placementCount++;
+
+        const tmpScale = this.scale + item.scale + (item.placeOffset || 0);
+        const tmpX = this.position.x + (tmpScale * Math.cos(this.dir));
+        const tmpY = this.position.y + (tmpScale * Math.sin(this.dir));
+
+        if (item.consume || ObjectManager.checkItem(tmpX, tmpY, item.scale, item.id)) {
+            let done = false;
+
+            if (item.consume) {
+                if (this.hitTime) {
+                    if (Date.now() - this.hitTime <= Configuration.SERVER_UPDATE_SPEED) {
+                        this.shameCount++;
+
+                        if (this.shameCount >= 8) {
+                            this.shameCount = 0;
+                            this.shameTimer = Configuration.SHAME_DURATION;
+                        }
+                    } else {
+                        this.shameCount = Math.max(0, this.shameCount - 2);
+                    }
+
+                    this.hitTime = 0;
+                }
+
+                if (this.shameTimer <= 0) {
+                    done = true;
+
+                    if (item.name == "apple") {
+                        this.changeHealth(20, this);
+                    } else if (item.name == "cookie") {
+                        this.changeHealth(40, this);
+                    } else if (item.name == "cheese") {
+                        this.changeHealth(30, this);
+                    }
+                }
+            } else {
+                done = true;
+                ObjectManager.add(tmpX, tmpY, this.dir, item.scale, item.type ?? -999, item.id, this.sid);
+            }
+
+            if (done) {
+                this.buildIndex = -1;
+                this.placementCount++;
+            }
+        }
     }
 
     changeGear(id: number, index: boolean) {
@@ -169,6 +212,7 @@ export default class Player {
     spawn(name: string) {
         this.kills = 0;
         this.autoGather = false;
+        this.mouseState = 0;
 
         this.age = 1;
         this.XP = 0;
@@ -381,11 +425,12 @@ export default class Player {
 
             if (player.canSee(this)) {
                 const playerSession = SessionManager.get(player.socketId)!;
-                playerSession.send(PacketMap.SERVER_TO_CLIENT.GATHER_ANIMATION, this.sid, hasHitSomething, this.weaponIndex);
 
                 for (const data of wiggleGameObects) {
                     playerSession.send(PacketMap.SERVER_TO_CLIENT.WIGGLE_GAME_OBJECT, data[0], data[1]);
                 }
+
+                playerSession.send(PacketMap.SERVER_TO_CLIENT.GATHER_ANIMATION, this.sid, hasHitSomething, this.weaponIndex);
             }
         }
     }
@@ -482,7 +527,7 @@ export default class Player {
                     this.position.x = gameObject.x + (tmpScale * Math.cos(tmpDir));
                     this.position.y = gameObject.y + (tmpScale * Math.sin(tmpDir));
                     this.velocity.x *= 0.75;
-                    this.velocity.y *= 0.75; console.log("WHAT")
+                    this.velocity.y *= 0.75;
 
                     if (gameObject.dmg && isEnemy) {
                         this.changeHealth(-gameObject.dmg, PlayerManager.get(gameObject.ownerSID!)!);

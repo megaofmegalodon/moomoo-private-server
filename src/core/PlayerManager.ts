@@ -1,3 +1,4 @@
+import ObjectManager from "@core/ObjectManager";
 import SessionManager from "@network/SessionManager";
 import PacketMap from "@utils/PacketMap";
 import Player from "@utils/Player";
@@ -79,7 +80,21 @@ export default class PlayerManager {
                 playerData.push(...other.getUpdateData());
             }
 
+            const gameObjectsData: any[] = [];
+            const gameObjects = ObjectManager.getObjects(player.position.x, player.position.y);
+
+            for (let i = 0; i < gameObjects.length; i++) {
+                const tmpObj = gameObjects[i];
+                if (!tmpObj) continue;
+
+                if (!tmpObj.sentTo.has(player.socketId) && tmpObj.visibleToPlayer(player)) {
+                    tmpObj.sentTo.add(player.socketId);
+                    gameObjectsData.push(tmpObj.sid, tmpObj.x, tmpObj.y, tmpObj.dir, tmpObj.scale, tmpObj.type, tmpObj.id, tmpObj.ownerSID);
+                }
+            }
+
             session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYERS, playerData);
+            if (gameObjectsData.length) session.send(PacketMap.SERVER_TO_CLIENT.LOAD_GAME_OBJECT, gameObjectsData);
         }
     }
 

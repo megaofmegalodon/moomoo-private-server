@@ -102,7 +102,7 @@ export default class GameObject {
     }
 
     private static typeIds = new Set([2, 3, 4]);
-    sentTo = false;
+    sentTo = new Set<string>();
 
     visibleToPlayer(player: Player) {
         return !this.hideFromEnemy || this.ownerSID === player.sid;

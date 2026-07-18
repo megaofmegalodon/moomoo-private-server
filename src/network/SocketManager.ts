@@ -165,6 +165,24 @@ export default class SocketManager {
             }
         });
 
+        this.on(PacketMap.CLIENT_TO_SERVER.SEND_HIT, (toggle, dir) => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+
+            if (typeof dir !== "number") dir = 0;
+            player.dir = dir
+
+            if (toggle) {
+                if (player.buildIndex >= 0) {
+                    player.buildItem(items.list[player.buildIndex]);
+                } else {
+                    player.mouseState = 1;
+                }
+            } else {
+                player.mouseState = 0;
+            }
+        });
+
         this.on(PacketMap.CLIENT_TO_SERVER.SEND_AIM, (angle) => {
             const player = SessionManager.get(this.sessionId)!.player;
             if (!player) return;

@@ -1,5 +1,8 @@
+import PlayerManager from "@core/PlayerManager";
+import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
 import GameObject from "@utils/GameObject";
+import PacketMap from "@utils/PacketMap";
 import withinDist from "@utils/withinDist";
 
 const riverWidth = 724;
@@ -105,6 +108,7 @@ export default class ObjectManager {
 
     static remove(sid: number) {
         const gameObjects = this.gameObjects;
+        const players = PlayerManager.players;
 
         for (let i = 0; i < gameObjects.length; i++) {
             const gameObject = gameObjects[i];
@@ -112,6 +116,13 @@ export default class ObjectManager {
             if (gameObject && gameObject.sid === sid) {
                 this.removeObjectFromChunks(gameObject);
                 this.gameObjects.splice(i, 1);
+
+                for (let i = 0; i < players.length; i++) {
+                    const player = players[i];
+                    if (player && gameObject.sentTo.has(player.socketId))
+                        SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.KILL_OBJECT, sid);
+                }
+
                 break;
             }
         }

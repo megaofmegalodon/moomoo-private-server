@@ -1,9 +1,0 @@
-[package]
-name = "moomoo-private-server"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-tokio = { version = "1.51.1", features = ["full"] }
-futures-util = "0.3.30"
-tokio-tungstenite = "0.29.0"

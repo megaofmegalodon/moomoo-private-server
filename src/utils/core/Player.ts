@@ -272,30 +272,32 @@ export default class Player {
         if (this.lockMove) {
             this.velocity.x = 0;
             this.velocity.y = 0;
-        } else {
-            const wpn = items.weapons[this.weaponIndex];
-            const skin = hats.find(e => e.id == this.skinIndex);
-            const tail = accessories.find(e => e.id == this.tailIndex);
-
-            const spdMult = (this.buildIndex >= 0 ? .5 : 1) *
-                (wpn?.spdMult || 1) *
-                (skin?.spdMult ?? 1) *
-                (tail?.spdMult ?? 1);
-
-            if (typeof this.moveDir === "number") {
-                let xVel = Math.cos(this.moveDir);
-                let yVel = Math.sin(this.moveDir);
-
-                const length = Math.sqrt(xVel * xVel + yVel * yVel);
-
-                xVel /= length;
-                yVel /= length;
-
-                if (xVel) this.velocity.x += xVel * this.speed * spdMult * dt;
-                if (yVel) this.velocity.y += yVel * this.speed * spdMult * dt;
-
-            }
+            return;
         }
+
+        if (typeof this.moveDir !== "number") return;
+
+        const wpn = items.weapons[this.weaponIndex];
+        const skin = hats.find(e => e.id == this.skinIndex);
+        const tail = accessories.find(e => e.id == this.tailIndex);
+
+        const spdMult = (this.buildIndex >= 0 ? .5 : 1) *
+            (wpn?.spdMult || 1) *
+            (skin?.spdMult ?? 1) *
+            (tail?.spdMult ?? 1);
+
+
+        let xVel = Math.cos(this.moveDir);
+        let yVel = Math.sin(this.moveDir);
+
+        const spdMag = this.speed * spdMult * dt;
+        const length = Math.sqrt(xVel * xVel + yVel * yVel);
+
+        xVel /= length;
+        yVel /= length;
+
+        if (xVel) this.velocity.x += xVel * spdMag;
+        if (yVel) this.velocity.y += yVel * spdMag;
     }
 
     private updatePosition(dt: number) {

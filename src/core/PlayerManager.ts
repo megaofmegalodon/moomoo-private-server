@@ -76,6 +76,7 @@ export default class PlayerManager {
                 if (other.isAlive && !player.sentTo.has(other.socketId)) {
                     player.sentTo.add(other.socketId);
                     session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
+                    if (other === player) player.grantAllEverything();
                 }
 
                 playerData.push(...other.getUpdateData());

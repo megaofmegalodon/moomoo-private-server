@@ -1,7 +1,9 @@
+import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
 import { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
+import PacketMap from "@utils/PacketMap";
 import randInt from "@utils/randInt";
-import { STORE_ACCESSORY_ID, STORE_HAT_ID } from "@utils/store";
+import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID } from "@utils/store";
 
 export type PlayerInitType = [
     id: string, sid: number,
@@ -135,6 +137,20 @@ export default class Player {
         this.buildIndex = -1;
 
         this.health = this.maxHealth;
+    }
+
+    grantAllEverything() {
+        const session = SessionManager.get(this.socketId)!;
+
+        for (const hat of hats) {
+            if (!hat.price) continue;
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_STORE_ITEMS, false, hat.id, 0);
+        }
+
+        for (const accessory of accessories) {
+            if (!accessory.price) continue;
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_STORE_ITEMS, false, accessory.id, 1);
+        }
     }
 
     update(dt: number = Configuration.SERVER_UPDATE_SPEED) { }

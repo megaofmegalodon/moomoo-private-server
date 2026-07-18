@@ -1,0 +1,33 @@
+{
+    "name": "moomoo-private-server",
+    "version": "1.0.0",
+    "description": "",
+    "homepage": "https://github.com/me-mega-noob-4044/moomoo-private-server#readme",
+    "bugs": {
+        "url": "https://github.com/me-mega-noob-4044/moomoo-private-server/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/me-mega-noob-4044/moomoo-private-server.git"
+    },
+    "license": "MIT",
+    "author": "",
+    "type": "commonjs",
+    "main": "index.js",
+    "scripts": {
+        "watch": "node packaging/watch.mjs",
+        "build": "node packaging/build.mjs"
+    },
+    "dependencies": {
+        "esbuild": "^0.28.1",
+        "express": "^5.2.1",
+        "ws": "^8.21.1"
+    },
+    "allowScripts": {
+        "esbuild@0.28.1": true
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.6",
+        "@types/ws": "^8.18.1"
+    }
+}

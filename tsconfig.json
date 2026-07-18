@@ -7,6 +7,7 @@
                 "./src/network/*"
             ],
             "@utils/*": [
+                "./src/utils/constants/*",
                 "./src/utils/core/*",
                 "./src/utils/utils/*",
                 "./src/utils/*"

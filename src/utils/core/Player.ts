@@ -4,7 +4,7 @@ import Configuration from "@utils/Configuration";
 import { LIST_ID_MAP, ListId, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import randInt from "@utils/randInt";
-import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID } from "@utils/store";
+import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID, STORE_HAT_MAP } from "@utils/store";
 
 export type PlayerInitType = [
     id: string, sid: number,
@@ -248,7 +248,7 @@ export default class Player {
         if (this.shameTimer <= 0) {
             this.shameTimer = 0;
         } else {
-            this.skinIndex = 45;
+            this.skinIndex = STORE_HAT_MAP.SHAME;
         }
 
         this.timerCount -= dt;

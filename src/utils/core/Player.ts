@@ -70,6 +70,7 @@ export default class Player {
     kills = 0;
     weaponXP: Record<number, number> = Object.fromEntries([...Array(16).keys()].map(k => [k, 0]));
     reloads: Record<number, number> = Object.fromEntries([...(Array(16).keys()), 53].map(k => [k, 0]));
+    autoGather = false;
 
     private gearCooldown = 0;
     private placementCount = 0;
@@ -159,6 +160,7 @@ export default class Player {
 
     spawn(name: string) {
         this.kills = 0;
+        this.autoGather = false;
 
         this.position.x = this.lastDeath.x + randInt(-500, 500);
         this.position.y = this.lastDeath.y + randInt(-500, 500);

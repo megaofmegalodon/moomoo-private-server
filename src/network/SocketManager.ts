@@ -105,5 +105,11 @@ export default class SocketManager {
             if (!player) return;
             player.moveDir = angle;
         });
+
+        this.on(PacketMap.CLIENT_TO_SERVER.AUTO_GATHER, () => {
+            const player = SessionManager.get(this.sessionId)!.player;
+            if (!player) return;
+            player.autoGather = !player.autoGather;
+        });
     }
 }

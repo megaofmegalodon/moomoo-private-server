@@ -66,6 +66,8 @@ export default class SocketManager {
             if (hasSpawnedBefore)
                 return PlayerManager.get(this.sessionId)!.spawn(data.name);
 
+            const ourPlayer = PlayerManager.create(this.sessionId, data.name);
+            this.send(PacketMap.SERVER_TO_CLIENT.SET_UP_GAME, ourPlayer.sid);
         });
     }
 }

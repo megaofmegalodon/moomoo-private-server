@@ -10,7 +10,6 @@ export default class PlayerManager {
     private static sidMap = new Map<number, Player>();
 
     static create(sessionId: string, name: string) {
-        name = name.slice(0, 15) ?? "unknown";
         const player = new Player(sessionId, this.currentSID, name);
 
         this.players.push(player);

@@ -67,6 +67,7 @@ export default class Player {
         public sid: number,
         public name: string
     ) {
+        this.spawn(name);
     }
 
     fetchVariant() {

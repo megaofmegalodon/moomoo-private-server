@@ -1,4 +1,5 @@
 import CommandManager from "@core/CommandManager";
+import ObjectManager from "@core/ObjectManager";
 import SessionManager from "@network/SessionManager";
 import getLeaderboardData from "@utils/getLeaderboardData";
 import items, { ListId, WeaponId } from "@utils/items";
@@ -28,11 +29,26 @@ export default class SocketManager {
 
             try {
                 const [type, data] = this.decode(raw);
-                this.dispatch(type, data);
+                setTimeout(() => { this.dispatch(type, data); }, 15); // fake artifical ping
             } catch (e) { }
         });
 
-        socket.on("close", () => { });
+        socket.on("close", () => {
+            const player = PlayerManager.remove(sessionId);
+            const players = PlayerManager.players;
+
+            if (player) {
+                for (let i = 0; i < players.length; i++) {
+                    const other = players[i];
+
+                    if (other !== player && other.sentTo.has(player.socketId)) {
+                        SessionManager.get(other.socketId)!.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PLAYER, player.socketId);
+                    }
+                }
+
+                ObjectManager.removeAll(player.sid);
+            }
+        });
         this.hookEvents();
     }
 
@@ -59,7 +75,7 @@ export default class SocketManager {
     send<K extends keyof MOOMOO_SERVER_TO_CLIENT_MAP>(type: K, ...data: MOOMOO_SERVER_TO_CLIENT_MAP[K]) {
         if (this.socket.readyState !== WebSocket.OPEN) return;
         const binary = encode([type, data]);
-        this.socket.send(binary);
+        setTimeout(() => { this.socket.send(binary); }, 15); // fake artifical ping
     }
 
     hookEvents() {

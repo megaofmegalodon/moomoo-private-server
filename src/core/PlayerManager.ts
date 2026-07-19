@@ -52,7 +52,7 @@ export default class PlayerManager {
             if (found) {
                 this.idMap.delete(player.socketId);
                 this.sidMap.delete(player.sid);
-                break;
+                return player;
             }
         }
     }

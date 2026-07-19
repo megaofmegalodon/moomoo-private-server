@@ -81,7 +81,6 @@ export default class Player {
     autoGather = false;
 
     private gearCooldown = 0;
-    private placementCount = 0;
     private timerCount = 0;
     private hitTime = 0;
     private lockMove = false;
@@ -104,19 +103,6 @@ export default class Player {
     }
 
     buildItem(item: ListItem) {
-        if (this.placementCount >= 2 && Configuration.ANTI_CHEAT && !this.isAI) {
-            if (this.shameTimer <= 0) {
-                this.shameCount += this.placementCount;
-                this.placementCount++;
-
-                if (this.shameCount >= 8) {
-                    this.shameCount = 0;
-                    this.shameTimer = Configuration.SHAME_DURATION;
-                }
-            }
-            return;
-        }
-
         const tmpScale = this.scale + item.scale + (item.placeOffset || 0);
         const tmpX = this.position.x + (tmpScale * Math.cos(this.dir));
         const tmpY = this.position.y + (tmpScale * Math.sin(this.dir));
@@ -158,7 +144,6 @@ export default class Player {
 
             if (done) {
                 this.buildIndex = -1;
-                this.placementCount++;
             }
         }
     }
@@ -169,8 +154,7 @@ export default class Player {
 
         if (!inBucket) return;
         if (this.gearCooldown !== 0) return;
-
-        this.gearCooldown = Configuration.ANTI_CHEAT ? 3 : 1;
+        this.gearCooldown = 1;
 
         if (index) {
             this.tailIndex = id as any;
@@ -474,7 +458,6 @@ export default class Player {
     }
 
     private updateAntiCheatModifiers() {
-        this.placementCount = 0;
         this.gearCooldown = Math.max(this.gearCooldown - 1, 0);
     }
 

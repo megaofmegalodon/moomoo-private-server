@@ -225,8 +225,8 @@ export default class Player {
         this.upgradePoints = 0;
         this.upgrAge = 2;
 
-        this.position.x = this.lastDeath.x + randInt(-500, 500);
-        this.position.y = this.lastDeath.y + randInt(-500, 500);
+        this.position.x = this.lastDeath.x + randInt(-1e3, 1e3);
+        this.position.y = this.lastDeath.y + randInt(-1e3, 1e3);
 
         this.name = name.slice(0, 15) ?? "unknown";
         this.shameCount = 0;

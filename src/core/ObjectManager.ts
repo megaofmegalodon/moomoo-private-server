@@ -141,5 +141,9 @@ export default class ObjectManager {
         }
     }
 
-    static update() { }
+    static update(dt: number = Configuration.SERVER_UPDATE_SPEED) {
+        for (let i = 0; i < this.gameObjects.length; i++) {
+            if (this.gameObjects[i]) this.gameObjects[i].update(dt);
+        }
+    }
 }

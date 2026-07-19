@@ -664,6 +664,7 @@ export default class Player {
             player.isAlive &&
             player.skinIndex !== STORE_HAT_MAP.EMP_HELMET &&
             player.canSee(this) &&
+            player.sid !== this.sid &&
             getDistSq(player.position, this.position) <= 490000
         ).sort((a, b) => getDistSq(a.position, this.position) - getDistSq(b.position, this.position))[0];
 

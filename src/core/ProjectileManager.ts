@@ -5,7 +5,7 @@ import Projectile from "@utils/Projectile";
 export default class ProjectileManager {
     static projectiles: Projectile[] = [];
 
-    static add(x: number, y: number, dir: number, range: number, speed: number, indx: number, owner: number, layer: number) {
+    static add(x: number, y: number, dir: number, range: number, speed: number, indx: number, owner: number, layer: number, ignoreSID?: number) {
         const tmpData = items.projectiles[indx];
         const projectiles = this.projectiles;
         let tmpProj;
@@ -20,9 +20,11 @@ export default class ProjectileManager {
         if (!tmpProj) {
             tmpProj = new Projectile(projectiles.length, indx, x, y, dir, speed, range, layer || tmpData.layer, owner);
             projectiles.push(tmpProj);
+            return;
         }
 
         tmpProj.init(indx, x, y, dir, speed, range, layer || tmpData.layer, owner);
+        tmpProj.ignoreSID = ignoreSID;
     }
 
     static update(dt: number = Configuration.SERVER_UPDATE_SPEED) {

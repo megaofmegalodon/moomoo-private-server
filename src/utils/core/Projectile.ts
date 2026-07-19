@@ -14,6 +14,7 @@ export default class Projectile {
     scale: number;
     active = true;
     skipMove = true;
+    ignoreSID: number | undefined;
 
     private sentTo = new Set<string>();
 
@@ -128,8 +129,9 @@ export default class Projectile {
         for (let i = 0, len = gameObjects.length; i < len; i++) {
             const gameObject = gameObjects[i];
             const tmpScale = gameObject.getScale();
+            const canCollide = typeof this.ignoreSID !== "number" || this.ignoreSID !== gameObject.sid;
 
-            if (gameObject.active && this.layer <= gameObject.layer && !gameObject.ignoreCollision) {
+            if (this.layer <= gameObject.layer && canCollide && !gameObject.ignoreCollision) {
                 if (lineInRect(
                     gameObject.x - tmpScale, gameObject.y - tmpScale,
                     gameObject.x + tmpScale, gameObject.y + tmpScale,
@@ -163,7 +165,12 @@ export default class Projectile {
             }
         }
 
-        if (owner) hitObj.changeHealth(this.dmg, owner);
+        if (owner) hitObj.changeHealth(-this.dmg, owner);
+
+        if (hitObj instanceof Player) {
+            hitObj.velocity.x += .3 * Math.cos(this.dir);
+            hitObj.velocity.y += .3 * Math.sin(this.dir);
+        }
 
         for (let i = 0; i < players.length; i++) {
             const player = players[i];

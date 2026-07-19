@@ -1,4 +1,10 @@
+import PlayerManager from "@core/PlayerManager";
+import ProjectileManager from "@core/ProjectileManager";
+import SessionManager from "@network/SessionManager";
+import getDir from "@utils/getDir";
+import getDistSq from "@utils/getDistSq";
 import items from "@utils/items";
+import PacketMap from "@utils/PacketMap";
 import Player from "@utils/Player";
 
 export default class GameObject {
@@ -103,6 +109,7 @@ export default class GameObject {
 
     private static typeIds = new Set([2, 3, 4]);
     sentTo = new Set<string>();
+    turretReload = 0;
 
     visibleToPlayer(player: Player) {
         return !this.hideFromEnemy || this.ownerSID === player.sid;
@@ -119,5 +126,44 @@ export default class GameObject {
     }
 
     update(dt: number) {
+        if (this.name !== "turret") return;
+
+        this.turretReload -= dt;
+        if (this.turretReload > 0) return;
+        this.turretReload = 2200;
+
+        const players = PlayerManager.players;
+        const owner = PlayerManager.get(this.ownerSID!)!;
+        const target = players.filter(player =>
+            player.isAlive &&
+            player.sid !== this.ownerSID &&
+            getDistSq(player.position, this) <= 490000
+        ).sort((a, b) => getDistSq(a.position, this) - getDistSq(b.position, this))[0];
+
+        if (!target) return;
+
+        const proj = items.projectiles[1];
+        const dir = getDir(target.position, this);
+        this.dir = dir;
+
+        for (let i = 0; i < players.length; i++) {
+            const player = players[i];
+
+            if (this.sentTo.has(player.socketId)) {
+                SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.SHOOT_TURRET, this.sid, dir);
+            }
+        }
+
+        ProjectileManager.add(
+            this.x,
+            this.y,
+            dir,
+            proj.range ?? 700,
+            proj.speed ?? 1.5,
+            1,
+            owner.sid,
+            owner.zIndex,
+            this.sid,
+        );
     }
 }

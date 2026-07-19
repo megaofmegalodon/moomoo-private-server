@@ -75,8 +75,16 @@ export default class PlayerManager {
 
                 if (other.isAlive && !player.sentTo.has(other.socketId)) {
                     player.sentTo.add(other.socketId);
-                    if (session) session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
-                    if (other === player) player.grantAllEverything();
+
+                    if (session) {
+                        session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
+
+                        if (other === player) {
+                            player.grantAllEverything();
+                            session.send(PacketMap.SERVER_TO_CLIENT.SET_UP_GAME, player.sid);
+                            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "points", player.points, true);
+                        }
+                    }
                 }
 
                 playerData.push(...other.getUpdateData());

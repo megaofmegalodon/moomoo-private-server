@@ -76,6 +76,7 @@ export default class Player {
     moveDir: number | null | undefined = null;
 
     kills = 0;
+    points = 1e6;
     weaponXP: Record<number, number> = Object.fromEntries([...Array(16).keys()].map(k => [k, 0]));
     reloads: Record<number, number> = Object.fromEntries([...(Array(16).keys()), 53].map(k => [k, 0]));
     autoGather = false;
@@ -152,16 +153,17 @@ export default class Player {
         const bucket = index ? accessories : hats;
         const inBucket = bucket.some(e => e.id === id);
 
-        if (!inBucket) return;
-        if (this.gearCooldown !== 0) return;
+        if (!inBucket) return false;
+        if (this.gearCooldown !== 0) return false;
         this.gearCooldown = 1;
 
         if (index) {
             this.tailIndex = id as any;
-            return;
+            return true;
         }
 
         this.skinIndex = id as any;
+        return true;
     }
 
     fetchVariant() {

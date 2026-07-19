@@ -166,11 +166,22 @@ export default class SocketManager {
         });
 
         this.on(PacketMap.CLIENT_TO_SERVER.STORE, (buy, id, index) => {
-            if (buy) return;
+            const session = SessionManager.get(this.sessionId);
+            if (!session) return;
 
-            const player = SessionManager.get(this.sessionId)!.player;
+            const player = session.player;
             if (!player) return;
-            player.changeGear(id, index);
+
+            if (buy) {
+                player.points -= 10e3;
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "points", player.points, true);
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_STORE_ITEMS, false, id, index ? 1 : 0);
+                return;
+            }
+
+            if (player.changeGear(id, index)) {
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_STORE_ITEMS, true, id, index ? 1 : 0);
+            }
         });
 
         this.on(PacketMap.CLIENT_TO_SERVER.SEND_CHAT, (msg) => {

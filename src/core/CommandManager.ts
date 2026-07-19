@@ -3,6 +3,7 @@ import getDistSq from "@utils/getDistSq";
 import Player, { weaponVariants } from "@utils/Player";
 import randInt from "@utils/randInt";
 import randString from "@utils/randString";
+import { STORE_HAT_MAP } from "@utils/store";
 
 export default class CommandManager {
     static process(player: Player, msg: string) {
@@ -28,11 +29,21 @@ export default class CommandManager {
             player.weaponXP[player.weaponIndex] = 0;
         } else if (cmdId === "k" || cmdId === "kill") {
             player.kill(player);
-        } else if (cmdId === "spawn" || cmdId === "s") {
+        } else if (cmdId === "spawn" || cmdId === "s" || cmdId === "ss" || cmdId === "sh" || cmdId === "ssh") {
             const bot = PlayerManager.create(randString(), "Bot");
             bot.position.x = player.position.x + randInt(-500, 500);
             bot.position.y = player.position.y + randInt(-500, 500);
             bot.isAI = true;
+
+            const cmdParts = cmdId.split("");
+
+            if (cmdParts.filter(e => e === "s").length >= 2) {
+                bot.skinIndex = STORE_HAT_MAP.SOLDIER_HELMET;
+            }
+
+            if (cmdParts.includes("h")) {
+                bot.aiSettings.heal = true;
+            }
         }
     }
 }

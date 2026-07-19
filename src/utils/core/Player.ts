@@ -59,6 +59,9 @@ export default class Player {
     };
 
     isAI = false;
+    aiSettings = {
+        heal: false
+    };
 
     shameCount = 0;
     shameTimer: number = 0;
@@ -101,7 +104,7 @@ export default class Player {
     }
 
     buildItem(item: ListItem) {
-        if (this.placementCount >= 2 && Configuration.ANTI_CHEAT) {
+        if (this.placementCount >= 2 && Configuration.ANTI_CHEAT && !this.isAI) {
             if (this.shameTimer <= 0) {
                 this.shameCount += this.placementCount;
                 this.placementCount++;
@@ -122,7 +125,7 @@ export default class Player {
             let done = false;
 
             if (item.consume) {
-                if (this.hitTime) {
+                if (this.hitTime && !this.isAI) {
                     if (Date.now() - this.hitTime <= Configuration.SERVER_UPDATE_SPEED) {
                         this.shameCount++;
 
@@ -709,6 +712,9 @@ export default class Player {
         this.preTick(dt);
         if (!this.isAlive) return;
         if (this.age <= 9 && this.sentTo.has(this.socketId)) this.earnXP(this.maxXP);
+
+        if (this.health !== this.maxHealth && this.isAI && this.aiSettings.heal)
+            this.changeHealth(this.maxHealth - this.health, this);
 
         this.handleMovementInputs(dt);
         this.updatePosition(dt);

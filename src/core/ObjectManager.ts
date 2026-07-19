@@ -27,6 +27,8 @@ export default class ObjectManager {
         const key = this.getKey(x, y);
         if (!this.gridMap.has(key)) this.gridMap.set(key, []);
         this.gridMap.get(key)!.push(gameObject);
+
+        return gameObject;
     }
 
     static getObject(sid: number) {

@@ -1,3 +1,4 @@
+import ArenaManager from "@core/ArenaManager";
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import getDistSq from "@utils/getDistSq";
@@ -64,6 +65,8 @@ export default class CommandManager {
                 player.position.x = victim.position.x;
                 player.position.y = victim.position.y;
             }
+        } else if (cmdId === "a") {
+            ArenaManager.process(player, parsed);
         }
     }
 }

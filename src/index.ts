@@ -1,3 +1,4 @@
+import ArenaManager from "@core/ArenaManager";
 import ObjectManager from "@core/ObjectManager";
 import PlayerManager from "@core/PlayerManager";
 import ProjectileManager from "@core/ProjectileManager";
@@ -17,6 +18,8 @@ const server = app.listen(PORT, () => console.log(`Server listening to port ${PO
 const wss = new WebSocketServer({ noServer: true });
 
 setInterval(() => {
+    ArenaManager.update();
+
     PlayerManager.update();
     ObjectManager.update();
     ProjectileManager.update();
@@ -50,6 +53,7 @@ setInterval(() => {
 }, 3e3);
 
 wss.on("connection", (ws) => {
+    if (ArenaManager.status) return ws.terminate();
     ws.binaryType = "arraybuffer";
     SessionManager.create(ws);
 });

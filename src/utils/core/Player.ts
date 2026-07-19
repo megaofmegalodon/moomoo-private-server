@@ -90,6 +90,7 @@ export default class Player {
     XP = 0;
     maxXP = 300;
     age = 1;
+    score = 0;
 
     upgradePoints = 0;
     upgrAge = 2;

@@ -17,6 +17,10 @@ export default class Session {
         return this.SocketManager.send;
     }
 
+    close() {
+        this.socket.close();
+    }
+
     terminate() {
         return this.socket.terminate();
     }

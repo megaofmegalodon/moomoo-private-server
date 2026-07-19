@@ -1,5 +1,6 @@
 import ObjectManager from "@core/ObjectManager";
 import PlayerManager from "@core/PlayerManager";
+import ProjectileManager from "@core/ProjectileManager";
 import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
 import getAngleDist from "@utils/getAngleDist";
@@ -619,13 +620,70 @@ export default class Player {
         const skin = hats.find(e => e.id == this.skinIndex);
         const wpn = items.weapons[this.weaponIndex || 0];
 
-        if (wpn.gather != undefined) {
+        if (wpn.gather !== undefined) {
             this.gather();
+        } else if (wpn.projectile !== undefined) {
+            const tmpIndx = wpn.projectile;
+            const projOffset = this.scale * 2;
+            const aMlt = (skin && skin.aMlt) ? skin.aMlt : 1;
+            const proj = items.projectiles[tmpIndx];
+
+            if (wpn.rec) {
+                this.velocity.x -= wpn.rec * Math.cos(this.dir);
+                this.velocity.y -= wpn.rec * Math.sin(this.dir);
+            }
+
+            ProjectileManager.add(
+                this.position.x + (projOffset * Math.cos(this.dir)),
+                this.position.y + (projOffset * Math.sin(this.dir)),
+                this.dir,
+                (proj?.range ?? 700) * aMlt,
+                (proj?.speed ?? 1.5) * aMlt,
+                tmpIndx,
+                this.sid,
+                this.zIndex
+            );
         } else {
             done = false;
         }
 
         if (done) this.reloads[this.weaponIndex] = wpn.speed * (skin?.atkSpd ?? 1);
+    }
+
+    private handleTurret(dt: number) {
+        if (this.reloads[STORE_HAT_MAP.TURRET_GEAR] > 0) {
+            this.reloads[STORE_HAT_MAP.TURRET_GEAR] -= dt;
+            if (this.reloads[STORE_HAT_MAP.TURRET_GEAR] <= 0) this.reloads[STORE_HAT_MAP.TURRET_GEAR] = 0;
+        }
+
+        if (this.reloads[STORE_HAT_MAP.TURRET_GEAR] !== 0) return;
+        if (this.skinIndex !== STORE_HAT_MAP.TURRET_GEAR) return;
+
+        const players = PlayerManager.players;
+        const enemy = players.filter(player =>
+            player.isAlive &&
+            player.skinIndex !== STORE_HAT_MAP.EMP_HELMET &&
+            player.canSee(this) &&
+            getDistSq(player.position, this.position) <= 490000
+        ).sort((a, b) => getDistSq(a.position, this.position) - getDistSq(b.position, this.position))[0];
+
+        if (!enemy) return;
+
+        const proj = items.projectiles[1];
+        const dir = getDir(enemy.position, this.position);
+
+        ProjectileManager.add(
+            this.position.x,
+            this.position.y,
+            dir,
+            proj.range ?? 700,
+            proj.speed ?? 1.5,
+            1,
+            this.sid,
+            this.zIndex
+        );
+
+        this.reloads[STORE_HAT_MAP.TURRET_GEAR] = 2500;
     }
 
     update(dt: number = Configuration.SERVER_UPDATE_SPEED) {
@@ -635,6 +693,7 @@ export default class Player {
 
         this.handleMovementInputs(dt);
         this.updatePosition(dt);
+        this.handleTurret(dt);
         this.handleWeapons(dt);
     }
 }

@@ -57,7 +57,13 @@ export default class CommandManager {
 
             session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, player.weapons, true);
             session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, player.upgradePoints, player.upgrAge);
+        } else if (cmdId === "tp") {
+            const victim = PlayerManager.players.find(e => e.sid === parseInt(parsed[1]));
 
+            if (victim) {
+                player.position.x = victim.position.x;
+                player.position.y = victim.position.y;
+            }
         }
     }
 }

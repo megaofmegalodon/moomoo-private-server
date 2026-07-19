@@ -43,7 +43,11 @@ export default class SocketManager {
 
                     if (other !== player && other.sentTo.has(player.socketId)) {
                         const session = SessionManager.get(other.socketId);
-                        if (session) session.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PLAYER, player.socketId);
+
+                        if (session) {
+                            session.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PLAYER, player.socketId);
+                            session.send(PacketMap.SERVER_TO_CLIENT.KILL_OBJECTS, player.sid);
+                        }
                     }
                 }
 

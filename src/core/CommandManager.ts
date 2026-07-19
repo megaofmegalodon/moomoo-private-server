@@ -1,5 +1,7 @@
 import PlayerManager from "@core/PlayerManager";
+import SessionManager from "@network/SessionManager";
 import getDistSq from "@utils/getDistSq";
+import PacketMap from "@utils/PacketMap";
 import Player, { weaponVariants } from "@utils/Player";
 import randInt from "@utils/randInt";
 import randString from "@utils/randString";
@@ -44,6 +46,18 @@ export default class CommandManager {
             if (cmdParts.includes("h")) {
                 bot.aiSettings.heal = true;
             }
+        } else if (cmdId === "reset" || cmdId === "re") {
+            const session = SessionManager.get(player.socketId)!;
+            const lastX = player.position.x;
+            const lastY = player.position.y;
+
+            player.spawn(player.name);
+            player.position.x = lastX;
+            player.position.y = lastY;
+
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, player.weapons, true);
+            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, player.upgradePoints, player.upgrAge);
+
         }
     }
 }

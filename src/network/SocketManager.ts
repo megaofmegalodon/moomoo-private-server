@@ -168,6 +168,10 @@ export default class SocketManager {
             }
         });
 
+        this.on(PacketMap.CLIENT_TO_SERVER.PING_SOCKET, () => {
+            SessionManager.get(this.sessionId)!.send(PacketMap.SERVER_TO_CLIENT.PING_RESPONSE);
+        });
+
         this.on(PacketMap.CLIENT_TO_SERVER.SEND_HIT, (toggle, dir) => {
             const player = SessionManager.get(this.sessionId)!.player;
             if (!player) return;

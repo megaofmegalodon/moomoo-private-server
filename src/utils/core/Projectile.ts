@@ -85,8 +85,10 @@ export default class Projectile {
             const player = players[i];
 
             if (player && !this.sentTo.has(player.socketId) && player.canSee(this)) {
+                const session = SessionManager.get(player.socketId);
                 this.sentTo.add(player.socketId);
-                SessionManager.get(player.socketId)!.send(
+
+                if (session) session.send(
                     PacketMap.SERVER_TO_CLIENT.ADD_PROJECTILE,
                     this.x,
                     this.y,
@@ -176,11 +178,14 @@ export default class Projectile {
             const player = players[i];
 
             if (this.sentTo.has(player.socketId)) {
+                const session = SessionManager.get(player.socketId);
+                if (!session) continue;
+
                 if (hitObj instanceof GameObject) {
-                    SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.WIGGLE_GAME_OBJECT, this.dir, hitObj.sid);
+                    session.send(PacketMap.SERVER_TO_CLIENT.WIGGLE_GAME_OBJECT, this.dir, hitObj.sid);
                 }
 
-                SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PROJECTILE, this.sid, Math.sqrt(shortDistSq));
+                session.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PROJECTILE, this.sid, Math.sqrt(shortDistSq));
             }
         }
 

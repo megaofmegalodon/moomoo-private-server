@@ -119,8 +119,11 @@ export default class ObjectManager {
 
                 for (let i = 0; i < players.length; i++) {
                     const player = players[i];
-                    if (player && gameObject.sentTo.has(player.socketId))
-                        SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.KILL_OBJECT, sid);
+
+                    if (player && gameObject.sentTo.has(player.socketId)) {
+                        const session = SessionManager.get(player.socketId);
+                        if (session) session.send(PacketMap.SERVER_TO_CLIENT.KILL_OBJECT, sid);
+                    }
                 }
 
                 break;

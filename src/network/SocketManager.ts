@@ -42,7 +42,8 @@ export default class SocketManager {
                     const other = players[i];
 
                     if (other !== player && other.sentTo.has(player.socketId)) {
-                        SessionManager.get(other.socketId)!.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PLAYER, player.socketId);
+                        const session = SessionManager.get(other.socketId);
+                        if (session) session.send(PacketMap.SERVER_TO_CLIENT.REMOVE_PLAYER, player.socketId);
                     }
                 }
 

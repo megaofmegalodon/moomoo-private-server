@@ -31,8 +31,8 @@ function updateLeaderboards() {
     for (let i = 0; i < players.length; i++) {
         const player = players[i];
         if (!player) continue;
-        const playerSession = SessionManager.get(player.socketId)!;
-        playerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_LEADERBOARD, data);
+        const playerSession = SessionManager.get(player.socketId);
+        if (playerSession) playerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_LEADERBOARD, data);
     }
 }
 

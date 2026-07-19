@@ -64,7 +64,7 @@ export default class PlayerManager {
             const player = players[i];
             if (!player) continue;
 
-            const session = SessionManager.get(player.socketId)!;
+            const session = SessionManager.get(player.socketId);
             const playerData: any[] = [];
 
             for (let j = 0; j < len; j++) {
@@ -74,7 +74,7 @@ export default class PlayerManager {
 
                 if (other.isAlive && !player.sentTo.has(other.socketId)) {
                     player.sentTo.add(other.socketId);
-                    session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
+                    if (session) session.send(PacketMap.SERVER_TO_CLIENT.ADD_PLAYER, other.getInitData(), other === player);
                     if (other === player) player.grantAllEverything();
                 }
 
@@ -94,8 +94,8 @@ export default class PlayerManager {
                 }
             }
 
-            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYERS, playerData);
-            if (gameObjectsData.length) session.send(PacketMap.SERVER_TO_CLIENT.LOAD_GAME_OBJECT, gameObjectsData);
+            if (session) session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYERS, playerData);
+            if (gameObjectsData.length && session) session.send(PacketMap.SERVER_TO_CLIENT.LOAD_GAME_OBJECT, gameObjectsData);
         }
     }
 

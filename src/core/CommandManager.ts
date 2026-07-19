@@ -1,6 +1,7 @@
 import PlayerManager from "@core/PlayerManager";
 import getDistSq from "@utils/getDistSq";
 import Player, { weaponVariants } from "@utils/Player";
+import randString from "@utils/randString";
 
 export default class CommandManager {
     static process(player: Player, msg: string) {
@@ -24,6 +25,11 @@ export default class CommandManager {
             player.weaponXP[player.weaponIndex] = weaponVariants[1].xp;
         } else if (cmdId === "stone") {
             player.weaponXP[player.weaponIndex] = 0;
+        } else if (cmdId === "k" || cmdId === "kill") {
+            player.kill(player);
+        } else if (cmdId === "spawn" || cmdId === "s") {
+            const bot = PlayerManager.create(randString(), "Bot");
+            bot.isAI = true;
         }
     }
 }

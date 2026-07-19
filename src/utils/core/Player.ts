@@ -58,6 +58,8 @@ export default class Player {
         y: randInt(0, Configuration.MAP_SIZE)
     };
 
+    isAI = false;
+
     shameCount = 0;
     shameTimer: number = 0;
     readonly scale = 35;
@@ -254,7 +256,8 @@ export default class Player {
     }
 
     grantAllEverything() {
-        const session = SessionManager.get(this.socketId)!;
+        const session = SessionManager.get(this.socketId);
+        if (!session) return;
 
         for (const hat of hats) {
             if (!hat.price) continue;
@@ -271,15 +274,16 @@ export default class Player {
         if (doer && doer.isAlive) {
             doer.kills++;
 
-            const doerSession = SessionManager.get(doer.socketId)!;
-            doerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "kills", doer.kills, true);
+            const doerSession = SessionManager.get(doer.socketId);
+            if (doerSession) doerSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_PLAYER_VALUE, "kills", doer.kills, true);
         }
 
         this.lastDeath.x = this.position.x;
         this.lastDeath.y = this.position.y;
-
         this.sentTo.clear();
-        SessionManager.get(this.socketId)!.send(PacketMap.SERVER_TO_CLIENT.KILL_PLAYER);
+
+        const victimSession = SessionManager.get(this.socketId);
+        if (victimSession) victimSession.send(PacketMap.SERVER_TO_CLIENT.KILL_PLAYER);
     }
 
     changeHealth(amt: number, doer: Player) {
@@ -304,14 +308,14 @@ export default class Player {
             const other = players[i];
 
             if (this.sentTo.has(other.socketId) || players[i] == this) {
-                const otherSession = SessionManager.get(other.socketId)!;
-                otherSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_HEALTH, this.sid, this.health);
+                const otherSession = SessionManager.get(other.socketId);
+                if (otherSession) otherSession.send(PacketMap.SERVER_TO_CLIENT.UPDATE_HEALTH, this.sid, this.health);
             }
         }
 
         if (doer && !(doer == this && amt < 0)) {
-            const doerSession = SessionManager.get(doer.socketId)!;
-            doerSession.send(
+            const doerSession = SessionManager.get(doer.socketId);
+            if (doerSession) doerSession.send(
                 PacketMap.SERVER_TO_CLIENT.SHOW_TEXT,
                 this.position.x, this.position.y,
                 Math.round(-amt), 1
@@ -323,7 +327,7 @@ export default class Player {
         if (this.age >= 100) return;
         this.XP += amount;
 
-        const session = SessionManager.get(this.socketId)!;
+        const session = SessionManager.get(this.socketId);
 
         if (this.XP >= this.maxXP) {
             if (this.age < 100) {
@@ -335,10 +339,13 @@ export default class Player {
             }
 
             this.upgradePoints++;
-            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, this.upgradePoints, this.upgrAge);
-            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, this.maxXP, this.age);
+
+            if (session) {
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_UPGRADES, this.upgradePoints, this.upgrAge);
+                session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, this.maxXP, this.age);
+            }
         } else {
-            session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, undefined, undefined);
+            if (session) session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_AGE, this.XP, undefined, undefined);
         }
     }
 
@@ -451,7 +458,8 @@ export default class Player {
             }
 
             if (player.canSee(this)) {
-                const playerSession = SessionManager.get(player.socketId)!;
+                const playerSession = SessionManager.get(player.socketId);
+                if (!playerSession) continue;
 
                 for (const data of wiggleGameObects) {
                     playerSession.send(PacketMap.SERVER_TO_CLIENT.WIGGLE_GAME_OBJECT, data[0], data[1]);

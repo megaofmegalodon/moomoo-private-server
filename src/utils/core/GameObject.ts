@@ -150,7 +150,8 @@ export default class GameObject {
             const player = players[i];
 
             if (this.sentTo.has(player.socketId)) {
-                SessionManager.get(player.socketId)!.send(PacketMap.SERVER_TO_CLIENT.SHOOT_TURRET, this.sid, dir);
+                const session = SessionManager.get(player.socketId);
+                if (session) session.send(PacketMap.SERVER_TO_CLIENT.SHOOT_TURRET, this.sid, dir);
             }
         }
 

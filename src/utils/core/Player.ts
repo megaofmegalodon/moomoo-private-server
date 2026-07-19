@@ -8,6 +8,7 @@ import getDist from "@utils/getDist";
 import getDistSq from "@utils/getDistSq";
 import items, { LIST_ID_MAP, ListId, ListItem, WEAPON_ID_MAP, WeaponId } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
+import Projectile from "@utils/Projectile";
 import randInt from "@utils/randInt";
 import { accessories, hats, STORE_ACCESSORY_ID, STORE_HAT_ID, STORE_HAT_MAP } from "@utils/store";
 
@@ -340,10 +341,11 @@ export default class Player {
         }
     }
 
-    canSee(other: Player) {
+    canSee(other: Player | Projectile) {
         if (!other) return false;
-        const dx = Math.abs(other.position.x - this.position.x) - other.scale;
-        const dy = Math.abs(other.position.y - this.position.y) - other.scale;
+        const pos = other instanceof Player ? other.position : other;
+        const dx = Math.abs(pos.x - this.position.x) - other.scale;
+        const dy = Math.abs(pos.y - this.position.y) - other.scale;
         return dx <= (Configuration.MAX_SCREEN_WIDTH / 2) * 1.3 && dy <= (Configuration.MAX_SCREEN_HEIGHT / 2) * 1.3;
     }
 

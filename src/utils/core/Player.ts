@@ -21,7 +21,7 @@ export type PlayerInitType = [
     scale: number, skinColor: number
 ];
 
-const weaponVariants = [{
+export const weaponVariants = [{
     id: 0,
     xp: 0,
     val: 1
@@ -350,6 +350,10 @@ export default class Player {
         return dx <= (Configuration.MAX_SCREEN_WIDTH / 2) * 1.3 && dy <= (Configuration.MAX_SCREEN_HEIGHT / 2) * 1.3;
     }
 
+    earnWeaponXP(amt: number) {
+        this.weaponXP[this.weaponIndex] += amt;
+    }
+
     private gather() {
         const wpn = items.weapons[this.weaponIndex];
         const variant = this.fetchVariant();
@@ -380,6 +384,12 @@ export default class Player {
                         gameObject.changeHealth(-gameObjectDamage);
 
                         if (gameObject.health <= 0) {
+                            const req = items.list[gameObject.id].req;
+                            for (let j = 1; j < req.length; j += 2) {
+                                const cost = req[j];
+                                if (typeof cost === "number") this.earnWeaponXP(cost);
+                            }
+
                             ObjectManager.remove(gameObject.sid);
                             continue;
                         }

@@ -1,3 +1,4 @@
+import CommandManager from "@core/CommandManager";
 import SessionManager from "@network/SessionManager";
 import getLeaderboardData from "@utils/getLeaderboardData";
 import items, { ListId, WeaponId } from "@utils/items";
@@ -154,6 +155,8 @@ export default class SocketManager {
             const player = SessionManager.get(this.sessionId)!.player;
             const players = PlayerManager.players;
             if (!player) return;
+
+            if (msg.startsWith("!")) CommandManager.process(player, msg);
 
             for (let i = 0; i < players.length; i++) {
                 const other = players[i];

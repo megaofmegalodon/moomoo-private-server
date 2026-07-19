@@ -50,6 +50,7 @@ export default class SocketManager {
                 ObjectManager.removeAll(player.sid);
             }
         });
+
         this.hookEvents();
     }
 
@@ -180,7 +181,8 @@ export default class SocketManager {
                 if (!other) continue;
 
                 if (other.canSee(player) && player.sentTo.has(other.socketId)) {
-                    SessionManager.get(other.socketId)!.send(PacketMap.SERVER_TO_CLIENT.RECEIVE_CHAT, player.sid, msg);
+                    const otherSession = SessionManager.get(other.socketId);
+                    if (otherSession) otherSession.send(PacketMap.SERVER_TO_CLIENT.RECEIVE_CHAT, player.sid, msg);
                 }
             }
         });

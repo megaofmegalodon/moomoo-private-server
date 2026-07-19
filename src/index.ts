@@ -37,7 +37,16 @@ function updateLeaderboards() {
 }
 
 setInterval(() => {
+    const players = PlayerManager.players;
     updateLeaderboards();
+
+    for (let i = players.length - 1; i >= 0; i--) {
+        const player = players[i];
+
+        if (player && !player.isAlive && player.isAI) {
+            PlayerManager.remove(player.sid);
+        }
+    }
 }, 3e3);
 
 wss.on("connection", (ws) => {

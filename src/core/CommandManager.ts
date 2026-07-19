@@ -1,6 +1,7 @@
 import PlayerManager from "@core/PlayerManager";
 import getDistSq from "@utils/getDistSq";
 import Player, { weaponVariants } from "@utils/Player";
+import randInt from "@utils/randInt";
 import randString from "@utils/randString";
 
 export default class CommandManager {
@@ -29,6 +30,8 @@ export default class CommandManager {
             player.kill(player);
         } else if (cmdId === "spawn" || cmdId === "s") {
             const bot = PlayerManager.create(randString(), "Bot");
+            bot.position.x = player.position.x + randInt(-500, 500);
+            bot.position.y = player.position.y + randInt(-500, 500);
             bot.isAI = true;
         }
     }

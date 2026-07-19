@@ -50,6 +50,7 @@ export default class PlayerManager {
             }
 
             if (found) {
+                players.splice(i, 1);
                 this.idMap.delete(player.socketId);
                 this.sidMap.delete(player.sid);
                 return player;

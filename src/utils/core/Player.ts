@@ -214,6 +214,8 @@ export default class Player {
         return this.health > 0;
     }
 
+    private init = false;
+
     spawn(name: string) {
         this.kills = 0;
         this.autoGather = false;
@@ -226,9 +228,10 @@ export default class Player {
         this.upgradePoints = 0;
         this.upgrAge = 2;
 
-        while (getDistSq(this.position, this.lastDeath) <= 360000) {
+        while (!this.init || getDistSq(this.position, this.lastDeath) <= 360000) {
             this.position.x = this.lastDeath.x + randInt(-1e3, 1e3);
             this.position.y = this.lastDeath.y + randInt(-1e3, 1e3);
+            this.init = true;
         }
 
         this.name = name.slice(0, 15) ?? "unknown";

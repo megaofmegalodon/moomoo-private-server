@@ -226,7 +226,7 @@ export default class Player {
         this.upgradePoints = 0;
         this.upgrAge = 2;
 
-        while (getDistSq(this.position, this.lastDeath) > 360000) {
+        while (getDistSq(this.position, this.lastDeath) <= 360000) {
             this.position.x = this.lastDeath.x + randInt(-1e3, 1e3);
             this.position.y = this.lastDeath.y + randInt(-1e3, 1e3);
         }

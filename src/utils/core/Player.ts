@@ -420,8 +420,8 @@ export default class Player {
                     let damage = wpn.dmg * variantMlt * (skin?.dmgMultO || 1) * (tail?.dmgMultO || 1);
 
                     const otherWpn = items.weapons[player.weaponIndex];
-                    const otherSkin = hats.find(e => e.id === this.skinIndex);
-                    const otherTail = accessories.find(e => e.id === this.tailIndex);
+                    const otherSkin = hats.find(e => e.id === player.skinIndex);
+                    const otherTail = accessories.find(e => e.id === player.tailIndex);
 
                     if (otherSkin?.dmgK) {
                         this.velocity.x -= otherSkin.dmgK * Math.cos(tmpDir);
@@ -440,12 +440,12 @@ export default class Player {
                     if (otherSkin?.dmg) this.changeHealth(-damage * otherSkin.dmg, player);
                     if (otherTail?.dmg) this.changeHealth(-damage * otherTail.dmg, player);
 
-                    if (otherSkin?.healD) {
-                        this.changeHealth(damage * otherSkin.healD, this);
+                    if (skin?.healD) {
+                        this.changeHealth(damage * skin.healD, this);
                     }
 
-                    if (otherTail?.healD) {
-                        this.changeHealth(damage * otherTail.healD, this);
+                    if (tail?.healD) {
+                        this.changeHealth(damage * tail.healD, this);
                     }
 
                     player.changeHealth(-damage, this);

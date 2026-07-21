@@ -72,6 +72,7 @@ export default class ArenaManager {
         if (PlayerManager.players.length <= 1) {
             this.status = false;
             this.countdown = 0;
+            this.fighters.length = 0;
             this.gameObjects.length = 0;
             return;
         }

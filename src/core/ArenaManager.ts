@@ -62,6 +62,7 @@ export default class ArenaManager {
             else PlayerManager.remove(fighter.sid);
         }
 
+        this.fighters.length = 0;
         this.status = false;
     }
 

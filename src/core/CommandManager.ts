@@ -2,6 +2,7 @@ import ArenaManager from "@core/ArenaManager";
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
 import getDistSq from "@utils/getDistSq";
+import { WEAPON_ID_MAP } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import Player, { weaponVariants } from "@utils/Player";
 import randInt from "@utils/randInt";
@@ -36,6 +37,7 @@ export default class CommandManager {
             const bot = PlayerManager.create(randString(), "Bot");
             bot.position.x = player.position.x + randInt(-500, 500);
             bot.position.y = player.position.y + randInt(-500, 500);
+            bot.weapons[0] = bot.weaponIndex = WEAPON_ID_MAP.POLEARM;
             bot.isAI = true;
 
             const cmdParts = cmdId.split("");

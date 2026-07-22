@@ -6,6 +6,7 @@ import getDistSq from "@utils/getDistSq";
 import items from "@utils/items";
 import PacketMap from "@utils/PacketMap";
 import Player from "@utils/Player";
+import { STORE_HAT_MAP } from "@utils/store";
 
 export default class GameObject {
     sid: number = -1;
@@ -137,7 +138,8 @@ export default class GameObject {
         const target = players.filter(player =>
             player.isAlive &&
             player.sid !== this.ownerSID &&
-            getDistSq(player.position, this) <= 490000
+            getDistSq(player.position, this) <= 490000 &&
+            player.skinIndex !== STORE_HAT_MAP.EMP_HELMET
         ).sort((a, b) => getDistSq(a.position, this) - getDistSq(b.position, this))[0];
 
         if (!target) return;

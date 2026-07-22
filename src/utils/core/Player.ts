@@ -104,6 +104,15 @@ export default class Player {
         this.spawn(name);
     }
 
+    updateWeaponry() {
+        if (this.weaponIndex < 9 || typeof this.weapons[1] !== "number") {
+            this.weaponIndex = this.weapons[0];
+            return;
+        }
+
+        this.weaponIndex = this.weapons[1];
+    }
+
     buildItem(item: ListItem) {
         const tmpScale = this.scale + item.scale + (item.placeOffset || 0);
         const tmpX = this.position.x + (tmpScale * Math.cos(this.dir));

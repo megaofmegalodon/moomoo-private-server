@@ -86,6 +86,7 @@ export default class ArenaManager {
                     const session = SessionManager.get(fighter.socketId);
 
                     if (session) {
+                        fighter.updateWeaponry();
                         session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, fighter.weapons, true);
                         session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, fighter.items, false);
                     }
@@ -193,6 +194,7 @@ export default class ArenaManager {
             this.fighters.push(fighter);
 
             if (session) {
+                fighter.updateWeaponry();
                 session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, fighter.weapons, true);
                 session.send(PacketMap.SERVER_TO_CLIENT.UPDATE_ITEMS, fighter.items, false);
             }

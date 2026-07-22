@@ -144,6 +144,7 @@ export default class SocketManager {
             if (isWeapon) {
                 player.buildIndex = -1;
                 player.weaponIndex = id as any;
+                player.updateWeaponry(); // enforce weapon loadouts
             } else {
                 if (player.buildIndex === id) {
                     player.buildIndex = -1;

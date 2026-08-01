@@ -1,6 +1,7 @@
 import ArenaManager from "@core/ArenaManager";
 import PlayerManager from "@core/PlayerManager";
 import SessionManager from "@network/SessionManager";
+import Configuration from "@utils/Configuration";
 import getDistSq from "@utils/getDistSq";
 import { WEAPON_ID_MAP } from "@utils/items";
 import PacketMap from "@utils/PacketMap";
@@ -48,6 +49,14 @@ export default class CommandManager {
 
             if (cmdParts.includes("h")) {
                 bot.aiSettings.heal = true;
+            }
+        } else if (cmdId === "s200") {
+            for (let i = 0; i < 200; i++) {
+                const bot = PlayerManager.create(randString(), `Bot ${i + 1}`);
+                bot.position.x = randInt(0, Configuration.MAP_SIZE);
+                bot.position.y = randInt(0, Configuration.MAP_SIZE);
+                bot.weapons[0] = bot.weaponIndex = WEAPON_ID_MAP.POLEARM;
+                bot.isAI = true;
             }
         } else if (cmdId === "reset" || cmdId === "re") {
             const session = SessionManager.get(player.socketId)!;

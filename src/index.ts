@@ -6,7 +6,6 @@ import SessionManager from "@network/SessionManager";
 import Configuration from "@utils/Configuration";
 import getLeaderboardData from "@utils/getLeaderboardData";
 import PacketMap from "@utils/PacketMap";
-import axios from "axios";
 import { config } from "dotenv";
 import express from "express";
 import { WebSocketServer } from "ws";
@@ -28,36 +27,6 @@ app.use((_req, res, next) => {
 });
 
 app.get("/ping", (_, res) => res.send("Success"));
-
-app.get("/img/:type/:filename", async (req, res) => {
-    try {
-        const { type, filename } = req.params;
-
-        if (!filename || !type) {
-            return res.status(400).send("Missing file path");
-        }
-
-        const remoteUrl = `https://moomoo.io/img/${type}/${filename}`;
-
-        const response = await axios.get(remoteUrl, {
-            responseType: "arraybuffer",
-            validateStatus: () => true,
-        });
-
-        if (response.status !== 200) {
-            return res.status(response.status).send("Upstream error");
-        }
-
-        const contentType = response.headers["content-type"] || "application/octet-stream";
-
-        res.setHeader("Content-Type", contentType as any);
-        res.setHeader("Cache-Control", "public, max-age=86400");
-        res.send(response.data);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Failed to fetch image");
-    }
-});
 
 setInterval(() => {
     ArenaManager.update();

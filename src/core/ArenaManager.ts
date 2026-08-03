@@ -16,6 +16,7 @@ export default class ArenaManager {
     private static gameObjects: GameObject[] = [];
     private static fighters: Player[] = [];
     private static countdown = 0;
+    private static type = "n";
     private static offsets = [{
         x: -500,
         y: 0
@@ -44,6 +45,16 @@ export default class ArenaManager {
     private static regear(player: Player) {
         const currentScore = this.fighters.reduce((prev, curr) => Math.max(curr.score, prev), 0);
         const scoreGap = currentScore - player.score;
+
+        if (this.type === "diapole") {
+            this.setEquipment(player, 4);
+            return;
+        }
+
+        if (this.type === "dh") {
+            this.setEquipment(player, 1);
+            return;
+        }
 
         if (currentScore >= 2 && scoreGap === 0 && this.fighters.every(f => f.score === currentScore)) {
             this.setEquipment(player, 4);
@@ -158,14 +169,15 @@ export default class ArenaManager {
 
     static process(player: Player, parsed: string[]) {
         const fighters: Player[] = [player];
-        const sids = parsed.slice(1);
+        const sid = parsed[1];
+        this.type = parsed[2];
         const players = PlayerManager.players;
 
         for (let i = 0; i < players.length; i++) {
             const other = players[i];
             if (!other) continue;
             if (other === player) continue;
-            if (!sids.some(e => parseInt(e) === other.sid)) continue;
+            if (parseInt(sid) !== other.sid) continue;
             fighters.push(other);
         }
 
@@ -199,7 +211,7 @@ export default class ArenaManager {
             fighter.velocity.y = 0;
             fighter.position.x = arenaX + this.offsets[i].x;
             fighter.position.y = arenaY + this.offsets[i].y;
-            this.setEquipment(fighter);
+            this.setEquipment(fighter, this.type === "diapole" ? 4 : 1);
             this.pausePlayer(fighter);
             this.fighters.push(fighter);
 
